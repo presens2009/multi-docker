@@ -1,0 +1,26 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t presens/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run presens/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t presens/multi-client ./client
+  - docker build -t presens/multi-nginx ./nginx
+  - docker build -t presens/multi-server ./server
+  - docker build -t presens/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push presens/multi-client
+  - docker push presens/multi-nginx
+  - docker push presens/multi-server
+  - docker push presens/multi-worker
+  
+
+
+  
